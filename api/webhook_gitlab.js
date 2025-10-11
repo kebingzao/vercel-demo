@@ -1,4 +1,9 @@
 module.exports = (request, response) => {
+  if (request.method !== 'POST') {
+    response.setHeader('Allow', 'POST');
+    return response.status(405).send('Method Not Allowed');
+  }
+
   const gitlabToken = request.headers['x-gitlab-token'];
   const secretToken = process.env.GITLAB_SECRET_TOKEN;
 
