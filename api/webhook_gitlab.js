@@ -24,8 +24,13 @@ module.exports = async (request, response) => {
   // Log the payload for debugging purposes.
   console.log('Successfully validated webhook from GitLab.');
   
-  // Define the target endpoint for forwarding
-  const forwardUrl = 'https://insight-api.airdroid.com/api/v1/workflow/exe/ctI781s9YFTpTpMp5LWpL9ygwTbBXSvpeYaa5DxM7vRFPh9Vp09ehJcc-k94q15QUDQF9lVlcmxiOudTPL_UMQ';
+  // Get the forwarding URL from environment variables for security
+  const insightApiToken = process.env.INSIGHT_API_TOKEN;
+  if (!insightApiToken) {
+    console.error('INSIGHT_API_TOKEN is not configured on the server.');
+    return response.status(500).send('Internal Server Error: Forwarding token not configured.');
+  }
+  const forwardUrl = `https://insight-api.airdroid.com/api/v1/workflow/exe/${insightApiToken}`;
   
   // Prepare the payload for the forwarding request
   const forwardPayload = {
