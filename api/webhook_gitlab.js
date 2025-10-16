@@ -1,4 +1,4 @@
-module.exports = (request, response) => {
+module.exports = async (request, response) => {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
     return response.status(405).send('Method Not Allowed');
@@ -22,10 +22,38 @@ module.exports = (request, response) => {
   }
 
   // Log the payload for debugging purposes.
-  // In a real application, you would process the payload here.
   console.log('Successfully validated webhook from GitLab.');
-  console.log('Payload:', JSON.stringify(request.body, null, 2));
+  
+  // Define the target endpoint for forwarding
+  const forwardUrl = 'https://insight-api.airdroid.com/api/v1/workflow/exe/ctI781s9YFTpTpMp5LWpL9ygwTbBXSvpeYaa5DxM7vRFPh9Vp09ehJcc-k94q15QUDQF9lVlcmxiOudTPL_UMQ';
+  
+  // Prepare the payload for the forwarding request
+  const forwardPayload = {
+    Input: request.body
+  };
 
-  // Respond to GitLab to acknowledge receipt of the webhook.
-  response.status(200).send('Webhook received and validated.');
+  try {
+    console.log(`Forwarding webhook payload to: ${forwardUrl}`);
+    const forwardResponse = await fetch(forwardUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(forwardPayload),
+    });
+
+    if (forwardResponse.ok) {
+      console.log('Successfully forwarded webhook. Endpoint responded with status:', forwardResponse.status);
+    } else {
+      // Log the error but still respond 200 to GitLab to prevent retries
+      const errorBody = await forwardResponse.text();
+      console.error('Failed to forward webhook. Endpoint responded with status:', forwardResponse.status);
+      console.error('Response body from endpoint:', errorBody);
+    }
+  } catch (error) {
+    console.error('An error occurred while trying to forward the webhook:', error);
+  }
+
+  // Respond to GitLab to acknowledge receipt, regardless of forwarding outcome.
+  response.status(200).send('Webhook received and processed.');
 };
