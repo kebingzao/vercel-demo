@@ -43,7 +43,9 @@ module.exports = async (request, response) => {
     });
 
     if (forwardResponse.ok) {
+      const responseBody = await forwardResponse.text();
       console.log('Successfully forwarded webhook. Endpoint responded with status:', forwardResponse.status);
+      console.log('Response body from endpoint:', responseBody);
     } else {
       // Log the error but still respond 200 to GitLab to prevent retries
       const errorBody = await forwardResponse.text();
