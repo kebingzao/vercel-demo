@@ -29,7 +29,9 @@ module.exports = async (request, response) => {
   
   // Prepare the payload for the forwarding request
   const forwardPayload = {
-    Input: request.body
+    Input: {
+      gitlab_payload: request.body
+    }
   };
 
   try {
